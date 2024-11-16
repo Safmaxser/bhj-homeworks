@@ -17,7 +17,7 @@ dropdowns.forEach(dropdown => {
     };
     dropdownItem.addEventListener('click', () => {
       dropdownValue.textContent = dropdownLink.textContent;
-     dropdownList.classList.remove('dropdown__list_active');
+      dropdownList.classList.remove('dropdown__list_active');
     });
   });
 });
