@@ -17,14 +17,19 @@ class Game {
   }
 
   registerEvents() {
-    /*
-      TODO:
-      Написать обработчик события, который откликается
-      на каждый введённый символ.
-      В случае правильного ввода символа вызываем this.success()
-      При неправильном вводе символа - this.fail();
-      DOM-элемент текущего символа находится в свойстве this.currentSymbol.
-     */
+    document.addEventListener('keydown', e => {
+      let eCode = e.key.charCodeAt();
+      if ((!['Control', 'Alt', 'Shift'].includes(e.key)) &&
+          (eCode > 96 && eCode < 123 || eCode > 64 && eCode < 91 ||
+          eCode > 1039 && eCode < 1104 || eCode > 47 && eCode < 58 ||
+          eCode === 32 || eCode === 1105 || eCode === 1025)) {
+        if (e.key.toLowerCase() === this.currentSymbol.textContent.toLowerCase()) {
+          this.success();
+        } else {
+          this.fail();
+        }
+      }
+    });
   }
 
   success() {
@@ -53,24 +58,33 @@ class Game {
   }
 
   setNewWord() {
+    clearInterval(this.setIntervalId);
     const word = this.getWord();
+    this.renderWord(word);  
 
-    this.renderWord(word);
+    let secondsCounter = word.length - 1;
+    this.setIntervalId = setInterval(() => {
+      if (secondsCounter > 0) {
+        secondsCounter -= 1;
+      } else {
+        this.fail();
+      }
+    }, 1000);
   }
 
   getWord() {
     const words = [
-        'bob',
-        'awesome',
-        'netology',
-        'hello',
-        'kitty',
-        'rock',
-        'youtube',
-        'popcorn',
-        'cinema',
-        'love',
-        'javascript'
+        'я bob',
+        'я awesome',
+        'я netology',
+        'я hello',
+        'я kitty',
+        'я rock',
+        'я youtube',
+        'я люблю popcorn',
+        'Моё cinema',
+        'я love',
+        'я javascript'
       ],
       index = Math.floor(Math.random() * words.length);
 
