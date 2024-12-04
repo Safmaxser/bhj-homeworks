@@ -51,11 +51,12 @@ function addProductToCart(newNum, idProduct, countProduct) {
   }
   localStorage.setItem("cart", JSON.stringify(cartObj));
 
-  const removeProduct = document.createElement('img');
+  const removeProduct = document.createElement('img');  
   removeProduct.src = 'remove.png';
+  removeProduct.alt = '';
   removeProduct.style.display = 'none';
   removeProduct.style.opacity = 0.7;
-  removeProduct.style.cursor = 'pointer';
+  removeProduct.style.cursor = 'pointer';  
   productCart.appendChild(removeProduct);
   productCart.addEventListener('mouseover', () => {
     const leftImage = productCartImg.getBoundingClientRect().left;
