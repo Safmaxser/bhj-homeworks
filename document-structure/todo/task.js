@@ -24,8 +24,9 @@ function addTask(idTask, nameTask) {
   taskTitle.classList.add('task__title');
   taskTitle.innerText = nameTask;
   const btnRemove = document.createElement('a');
+  btnRemove.href = '#';
   btnRemove.classList.add('task__remove');
-  btnRemove.innerText = '×';
+  btnRemove.innerText = '×';  
   task.appendChild(taskTitle);
   task.appendChild(btnRemove);
   tasksList.appendChild(task);
