@@ -62,9 +62,9 @@ function addProductToCart(idProduct, srcImage, countProduct) {
     removeProduct.style.display = 'none';
   });
   removeProduct.addEventListener('click',() => {
-    const idList = Array.from(cartProducts.children, el => el.dataset.id);
-    const findProduct = idList.indexOf(idProduct);
-    dataList.splice(findProduct, 1);
+    const idList = Array.from(dataList, el => el.id);
+    const findItem = idList.indexOf(idProduct);
+    dataList.splice(findItem, 1);
     localStorage.setItem(keyStorage, JSON.stringify(dataList));
     productCart.remove();    
   });
