@@ -1,6 +1,7 @@
 const productList = document.querySelectorAll('.product');
 const cartProducts = document.querySelector('.cart__products');
-let cartObj = {};
+const keyStorage = 'cartList';
+const dataList = [];
 
 productList.forEach(product => {
   const btnQuantityDec = product.querySelector('.product__quantity-control_dec');
@@ -20,81 +21,56 @@ productList.forEach(product => {
   });
 
   btnProductAdd.addEventListener('click', () => {   
+    const productImage = product.querySelector('.product__image'); 
     const idList = Array.from(cartProducts.children, el => el.dataset.id);
     const findProduct = idList.indexOf(product.dataset.id);
     if (findProduct < 0) {    
-      addProductToCart(idList.length, product.dataset.id, quantityValue.innerText);
+      addProductToCart(product.dataset.id, productImage.src, quantityValue.innerText);
+      localStorage.setItem(keyStorage, JSON.stringify(dataList));
     } else {
-      changeProductToCart(findProduct, product.dataset.id, quantityValue.innerText);
+      changeProductToCart(productImage, findProduct, product.dataset.id, quantityValue.innerText);
     }
     quantityValue.innerText = 1;
   });
 });
 
-function addProductToCart(newNum, idProduct, countProduct) {
-  const productCart = document.createElement('div');
-  productCart.classList.add('cart__product');
-  productCart.dataset.id = idProduct;
-  const productCartImg = document.createElement('img');
-  productCartImg.classList.add('cart__product-image');
-  productCartImg.src = searchImageById(idProduct).src;
-  productCartImg.alt = '';
-  const productCartCount = document.createElement('div');
-  productCartCount.classList.add('cart__product-count');
-  productCartCount.innerText = countProduct;
-  productCart.appendChild(productCartImg);
-  productCart.appendChild(productCartCount);
-  cartProducts.appendChild(productCart);   
-  cartObj[newNum] = {
+function addProductToCart(idProduct, srcImage, countProduct) {
+  dataList.push({
     id: idProduct,
+    srcImg: srcImage,
     count: Number(countProduct),
-  }
-  localStorage.setItem("cart", JSON.stringify(cartObj));
-
-  const removeProduct = document.createElement('img');  
+  });   
+  
+  cartProducts.insertAdjacentHTML('beforeEnd', `
+    <div class="cart__product" data-id="${idProduct}">
+      <img class="cart__product-image" src="${srcImage}">
+      <div class="cart__product-count">${countProduct}</div>
+    </div>
+    `);
+  const productCart = cartProducts.lastElementChild;
+  const productCartImg = productCart.querySelector('.cart__product-image');
+  const removeProduct = productCartImg.cloneNode(false);
+  productCart.appendChild(removeProduct); 
   removeProduct.src = 'remove.png';
-  removeProduct.alt = '';
-  removeProduct.style.display = 'none';
-  removeProduct.style.opacity = 0.7;
-  removeProduct.style.cursor = 'pointer';  
-  productCart.appendChild(removeProduct);
+  removeProduct.style.cssText = `display: none; opacity: 0.7; cursor: pointer;
+    position: absolute; margin-top: ${-productCartImg.offsetHeight}px;`;
+
   productCart.addEventListener('mouseover', () => {
-    const leftImage = productCartImg.getBoundingClientRect().left;
-    const topImage = productCartImg.getBoundingClientRect().top;
-    const heightImage = productCartImg.getBoundingClientRect().height;
-    const widthImage = productCartImg.getBoundingClientRect().width;
-    removeProduct.style.position = 'fixed';
     removeProduct.style.display = 'block';
-    removeProduct.style.left = `${leftImage}px`;
-    removeProduct.style.top = `${topImage}px`;
-    removeProduct.style.height = `${heightImage}px`;
-    removeProduct.style.width = `${widthImage}px`;  
   });
   productCart.addEventListener('mouseout', () => {
     removeProduct.style.display = 'none';
   });
-
   removeProduct.addEventListener('click',() => {
-    let newCartObj = {}
-    let newCounter = 0;
-    let counter = 0;
-    let cartItem = cartObj[counter];
-    while (cartItem) {
-      if (counter !== newNum) {
-        newCartObj[newCounter] = cartObj[counter];
-        newCounter += 1;
-      }
-      counter += 1;
-      cartItem = cartObj[counter];
-    }
-    cartObj = newCartObj;
-    localStorage.setItem("cart", JSON.stringify(cartObj));
+    const idList = Array.from(cartProducts.children, el => el.dataset.id);
+    const findProduct = idList.indexOf(idProduct);
+    dataList.splice(findProduct, 1);
+    localStorage.setItem(keyStorage, JSON.stringify(dataList));
     productCart.remove();    
   });
 }
 
-function changeProductToCart(positionFound, idProduct, countProduct) {
-  const productImage = searchImageById(idProduct);
+function changeProductToCart(productImage, positionFound, idProduct, countProduct) {
   const currentProductCart = cartProducts.children[positionFound];
   const currentImage = currentProductCart.querySelector('img');
   const currentCount = currentProductCart.querySelector('.cart__product-count');
@@ -104,45 +80,32 @@ function changeProductToCart(positionFound, idProduct, countProduct) {
   const topCurrentImage = currentImage.getBoundingClientRect().top;
   const heightCurrentImage = currentImage.getBoundingClientRect().height;
 
-  const productImageClone = productImage.cloneNode(false);
-  productImageClone.style.position = 'fixed';
-  productImageClone.style.left = `${leftProductImage}px`;
-  productImageClone.style.top = `${topProductImage}px`;
-  document.body.appendChild(productImageClone);     
+  const imagePlay = productImage.cloneNode(false);
+  document.body.appendChild(imagePlay);    
+  imagePlay.style.cssText = `position: fixed; left: ${leftProductImage}px; top: ${topProductImage}px;`     
   let NewCount = Number(currentCount.innerText) + Number(countProduct);
-  setTimeout(() => {   
-    productImageClone.style.transition = "all 500ms ease";  
-    productImageClone.style.left = `${leftCurrentImage}px`;
-    productImageClone.style.top = `${topCurrentImage}px`;
-    productImageClone.style.height = `${heightCurrentImage}px`;
-    productImageClone.style.opacity = 0.7;
-    productImageClone.style.borderRadius = '50%';
+  setTimeout(() => {  
+    imagePlay.style.cssText += `transition: all 500ms ease; opacity: 0.7; border-radius: 50%;
+      left: ${leftCurrentImage}px; top: ${topCurrentImage}px; height: ${heightCurrentImage}px;`;
     setTimeout(() => {
-      productImageClone.remove();
+      imagePlay.remove();
       currentCount.innerText = NewCount;
     }, 500);        
   }, 100);
-  cartObj[positionFound] = {
-    id: currentProductCart.dataset.id,
+  dataList.splice(positionFound, 1, {
+    id: idProduct,
+    srcImg: productImage.src,
     count: NewCount,
-  }
-  localStorage.setItem("cart", JSON.stringify(cartObj));
-}
-
-function searchImageById(idProduct) {    
-  const arrayProducts = Array.from(productList, el => el.dataset.id);
-  const foundNumber = arrayProducts.find(el => el === idProduct)-1;
-  const foundProduct = productList[foundNumber];  
-  return foundProduct.querySelector('.product__image');  
+  });
+  localStorage.setItem(keyStorage, JSON.stringify(dataList));
 }
 
 window.addEventListener('load', () => {
-  const cartLS = JSON.parse(localStorage.getItem("cart"));
-  let counter = 0;
-  let cartItem = cartLS[counter];
-  while (cartItem) {
-    addProductToCart(counter, cartLS[counter].id, cartLS[counter].count);
-    counter += 1;
-    cartItem = cartLS[counter];
+  dataList.length = 0;
+  const cartStorage = JSON.parse(localStorage.getItem(keyStorage));
+  if (cartStorage?.length) {    
+    cartStorage.forEach(productItem => {
+      addProductToCart(productItem.id, productItem.srcImg, productItem.count);
+    });
   }
 });
